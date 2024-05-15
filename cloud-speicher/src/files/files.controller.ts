@@ -1,7 +1,14 @@
-import { Body, Controller, Post, UseInterceptors } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  MaxFileSizeValidator,
+  ParseFilePipe,
+  Post,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
-import { CreateFileDto } from './dto/create-file.dto';
 import { FilesService } from './files.service';
 import { fileStorage } from './storage';
 
@@ -9,6 +16,11 @@ import { fileStorage } from './storage';
 @ApiTags('files')
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
+
+  @Get()
+  findAll() {
+    return this.filesService.findAll();
+  }
 
   @Post()
   @UseInterceptors(FileInterceptor('file', { storage: fileStorage }))
@@ -24,7 +36,14 @@ export class FilesController {
       },
     },
   })
-  create(@Body() createFileDto: CreateFileDto) {
-    return this.filesService.create(createFileDto);
+  create(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 5 })],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    return file;
   }
 }

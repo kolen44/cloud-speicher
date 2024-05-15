@@ -1,25 +1,29 @@
-import { Injectable } from '@nestjs/common';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UserEntity } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
-  create() {
-    return 'This action adds a new user';
+  constructor(
+    @InjectRepository(UserEntity) private repository: Repository<UserEntity>,
+  ) {}
+
+  async findByEmail(email: string) {
+    return await this.repository.findOne({ where: { email } });
   }
 
-  findAll() {
-    return `This action returns all users`;
+  async findById(id: number) {
+    return await this.repository.findOne({ where: { id } });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
-
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async create(dto: CreateUserDto) {
+    const existUser = this.findByEmail(dto.email);
+    if (existUser)
+      return new BadRequestException({
+        message: 'Данный емайл уже подвязан к другому аккаунту',
+      });
+    return this.repository.save(dto);
   }
 }
