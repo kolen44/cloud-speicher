@@ -15,6 +15,7 @@ async function bootstrap() {
   const configApi = new DocumentBuilder()
     .setTitle('Облачное хранилище данных')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, configApi);
   SwaggerModule.setup('swagger', app, document);

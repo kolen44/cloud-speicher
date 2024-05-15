@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -10,7 +10,7 @@ export class UsersService {
     @InjectRepository(UserEntity) private repository: Repository<UserEntity>,
   ) {}
 
-  async findByEmail(email: string) {
+  public async findByEmail(email: string) {
     return await this.repository.findOne({ where: { email } });
   }
 
@@ -19,11 +19,8 @@ export class UsersService {
   }
 
   async create(dto: CreateUserDto) {
-    const existUser = this.findByEmail(dto.email);
-    if (existUser)
-      return new BadRequestException({
-        message: 'Данный емайл уже подвязан к другому аккаунту',
-      });
+    const existUser = await this.findByEmail(dto.email);
+    if (existUser) return existUser;
     return this.repository.save(dto);
   }
 }
